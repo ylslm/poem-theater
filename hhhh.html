@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>诗画同源 · 初中语文诗词伴读剧场</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Serif SC', serif; background: #1a1a1a; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+
+/* 动态背景层 */
+#bg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; transition: background 1s ease; background-size: cover; background-position: center; filter: brightness(0.6); }
+#particles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+
+/* 卷轴主面板 */
+#app { width: 95%; max-width: 900px; background: rgba(255, 252, 245, 0.88); border-radius: 4px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(139, 115, 85, 0.1); padding: 40px 40px 180px 40px; border-left: 15px solid #5d4037; border-right: 15px solid #5d4037; display: flex; flex-direction: column; position: relative; animation: panelDrop 1s ease-out; min-height: 700px; }
+@keyframes panelDrop { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+
+header { text-align: center; border-bottom: 2px dashed #a1887f; padding-bottom: 20px; margin-bottom: 25px; position: relative; }
+header h1 { font-family: 'Ma Shan Zheng', cursive; font-size: 32px; color: #3e2723; margin-bottom: 8px; letter-spacing: 4px; }
+header p { font-size: 14px; color: #6d4c41; letter-spacing: 2px; }
+#progress { font-size: 14px; color: #d32f2f; font-weight: bold; position: absolute; right: 0; bottom: 15px; border: 2px solid #d32f2f; padding: 2px 10px; border-radius: 4px; transform: rotate(-5deg); font-family: 'Ma Shan Zheng', cursive; }
+
+#top-back-btn { background: #5d4037; color: white; border: none; cursor: pointer; position: absolute; left: 0; bottom: 15px; width: auto; padding: 8px 15px; font-size: 14px; border-radius: 6px; transition: 0.3s; }
+#top-back-btn:hover { background: #3e2723; }
+
+.scene-text { text-align: center; font-size: 16px; color: #5d4037; margin-bottom: 10px; font-style: italic; opacity: 0; animation: fadeIn 1s forwards; }
+.poem-display { text-align: center; font-size: 28px; font-weight: bold; color: #1a1a1a; min-height: 40px; margin-bottom: 20px; opacity: 0; animation: fadeIn 1s 0.3s forwards; letter-spacing: 3px; }
+@keyframes fadeIn { to { opacity: 1; } }
+
+#poet-box { display: flex; gap: 20px; margin: 20px 0; opacity: 0; animation: fadeIn 1s 0.6s forwards; }
+.dialog-bubble { background: #fff8e1; border: 2px solid #d7ccc8; border-radius: 0 20px 20px 20px; padding: 25px; font-size: 18px; color: #4e342e;max-width: 68%; line-height: 1.8; box-shadow: 5px 5px 20px rgba(0,0,0,0.1); position: relative; }
+
+/* 诗人立绘 */
+#poet-avatar { position: absolute; bottom: 0; right: 30px; width: 220px; height: 340px; background-size: cover; background-repeat: no-repeat; background-position: center bottom; opacity: 0; animation: slideInRight 1s 1s forwards; z-index: 10; border-radius: 4px 4px 0 0; box-shadow: -5px 0 15px rgba(0,0,0,0.1); }
+@keyframes slideInRight { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+
+#options-box { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
+button { padding: 18px 25px; font-size: 17px; font-family: inherit; background: #fdfbf7; border: 2px solid #a1887f; border-radius: 10px; color: #3e2723; cursor: pointer; text-align: left; transition: all 0.3s ease; opacity: 0; animation: slideUp 0.6s forwards; box-shadow: 0 3px 10px rgba(0,0,0,0.05); width: 75%; max-width: 68%; }
+button:nth-child(1) { animation-delay: 1.2s; }
+button:nth-child(2) { animation-delay: 1.4s; }
+button:nth-child(3) { animation-delay: 1.6s; }
+button:hover { background: #6d4c41; color: white; transform: translateX(10px); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+.next-btn, .restart-btn, .back-btn { background: #d32f2f; color: white; text-align: center; border: none; font-weight: bold; letter-spacing: 2px; animation-delay: 0s; margin-top: 10px; width: 100%; max-width: 68%;}
+.next-btn:hover, .restart-btn:hover, .back-btn:hover { background: #b71c1c; }
+.back-btn { background: #5d4037; margin-top: 5px; }
+.back-btn:hover { background: #3e2723; }
+@keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+
+/* 粒子特效 */
+.particle { position: absolute; pointer-events: none; z-index: 100; }
+.petal { background: #f8bbd0; border-radius: 50% 0 50% 0; opacity: 0.6; animation: fall linear infinite; }
+.rain { background: #a0c4ff; width: 2px; height: 15px; opacity: 0.6; animation: fallRain linear infinite; }
+.catkin { background: #f0f0f0; border-radius: 50%; opacity: 0.5; animation: fall linear infinite; }
+.moon { position: absolute; top: 15%; right: 15%; width: 80px; height: 80px; background: #fffde7; border-radius: 50%; box-shadow: 0 0 30px #fffde7; opacity: 0.9; }
+.frost { position: absolute; bottom: 0; left: 0; width: 100%; height: 30%; background: linear-gradient(to top, rgba(255,255,255,0.8), transparent); opacity: 0.5; }
+@keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg); } 100% { transform: translateY(110vh) rotate(720deg); } }
+@keyframes fallRain { 0% { transform: translateY(-10vh); } 100% { transform: translateY(110vh); } }
+</style>
+</head>
+<body>
+<audio id="bgm" src="music.ogg" loop></audio>
+<div id="bg-layer"></div>
+<div id="particles"></div>
+
+<div id="app">
+    <header>
+        <h1>诗画同源 · 初中语文诗词伴读剧场</h1>
+        <p>韩山师范学院 · 师范生AI教学智能体应用</p>
+        <div id="progress">选择诗作</div>
+        <button id="top-back-btn" onclick="toggleDisplay(false)" style="display: none;">⬅ 返回选诗</button>
+    </header>
+
+    <div id="poem-selector" style="text-align: center; margin-top: 20px;">
+        <h3 style="font-family: 'Ma Shan Zheng', cursive; color: #5d4037; font-size: 24px; margin-bottom: 20px;">选择你想跟随哪位诗人学习</h3>
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;">
+            <button onclick="startPoem('baijuyi', 0)" style="width: 45%; padding: 15px; font-size: 16px;">白居易《钱塘湖春行》</button>
+            <button onclick="startPoem('baijuyi', 1)" style="width: 45%; padding: 15px; font-size: 16px;">白居易《卖炭翁》</button>
+            <button onclick="startPoem('libai', 0)" style="width: 45%; padding: 15px; font-size: 16px;">李白《静夜思》</button>
+            <button onclick="startPoem('libai', 1)" style="width: 45%; padding: 15px; font-size: 16px;">李白《望庐山瀑布》</button>
+            <button onclick="startPoem('dufu', 0)" style="width: 45%; padding: 15px; font-size: 16px;">杜甫《春望》</button>
+            <button onclick="startPoem('dufu', 1)" style="width: 45%; padding: 15px; font-size: 16px;">杜甫《绝句》</button>
+            <button onclick="startPoem('wangwei', 0)" style="width: 45%; padding: 15px; font-size: 16px;">王维《山居秋暝》</button>
+            <button onclick="startPoem('wangwei', 1)" style="width: 45%; padding: 15px; font-size: 16px;">王维《相思》</button>
+            <button onclick="startPoem('sushi', 0)" style="width: 45%; padding: 15px; font-size: 16px;">苏轼《水调歌头》</button>
+            <button onclick="startPoem('sushi', 1)" style="width: 45%; padding: 15px; font-size: 16px;">苏轼《题西林壁》</button>
+        </div>
+    </div>
+
+    <div class="scene-text" id="sceneText" style="display: none;"></div>
+    <div class="poem-display" id="poemText" style="display: none;"></div>
+    <div id="poet-box" style="display: none;"><div class="dialog-bubble" id="dialogText">正在进入剧场...</div></div>
+    <div id="poet-avatar" style="display: none;"></div>
+    <div id="options-box" style="display: none;"></div>
+</div>
+
+<script>
+// 🌟 剧本数据库（所有诗词的讲解与默写已全面升级）
+const scripts = {
+    'baijuyi': { bg: "url('xihu.jpg')", particle: 'petal', avatar: 'baijuyi.jpg', poems: [
+        { title: "《钱塘湖春行》· 白居易", acts: [
+            { act: 0, scene: "[ 序幕：梦回大唐 ]", poem: "《钱塘湖春行》· 白居易", poetDialog: "小友，你好。我是白居易。今天带你去西湖边走走，那里有我一生中最爱的春景。你可愿与我同游？", options: [ { text: "A. 愿意！先生请带路。", feedback: "好！我们这就出发。你看，春水初涨，水面刚与堤岸齐平，白云与湖面连成一片。" }, { text: "B. 先生，我有点紧张。", feedback: "不必紧张，带上一双发现美的眼睛即可。你看，我们已经来到了孤山寺的北面。" } ] },
+            { act: 1, scene: "[ 第一幕：孤山寺北 ]", poem: "孤山寺北贾亭西，水面初平云脚低。", poetDialog: "你看这湖水刚与堤岸齐平，白云与湖面连成一片。你若是导演，会怎么拍这个画面？", options: [ { text: "A. 用广角镜头，拍壮阔全景。", feedback: "甚合我意！‘初平’与‘云脚低’勾勒出早春湖面的开阔与明朗，视野极为宽广。" }, { text: "B. 用特写镜头拍小船。", feedback: "很细腻的构思。不过特写稍显局促，不妨拉远镜头，感受水天一色的开阔之美。" } ] },
+            { act: 2, scene: "[ 第二幕：早莺新燕 ]", poem: "几处早莺争暖树，谁家新燕啄春泥。", poetDialog: "听，黄莺在叫，燕子在飞。我这句诗用了两个非常特别的动词，你猜是哪个？", options: [ { text: "A. ‘争’和‘啄’", feedback: "好眼力！一个‘争’字，写出了黄莺争先恐后飞向向阳暖树的生机；一个‘啄’字，刻画了燕子衔泥筑巢的忙碌。一‘争’一‘啄’，静中有动，把早春的活力写活了！这便是古诗词中‘炼字’的妙处。我们写作时，也要学会用精准的动词来增强画面感。" }, { text: "B. ‘早’和‘新’", feedback: "这个角度很独特！‘早’和‘新’点明了早春时节。不过，真正让画面动起来的是‘争’和‘啄’。‘争’写出了生机，‘啄’写出了忙碌，这也是语文考试中常考的‘炼字’题型哦。" } ] },
+            { act: 3, scene: "[ 第三幕：白沙堤 ]", poem: "最爱湖东行不足，绿杨阴里白沙堤。", poetDialog: "我们走到了白沙堤，面对这样的春景，我却觉得‘行不足’。你知道为什么吗？", options: [ { text: "A. 因为景色太美，流连忘返。", feedback: "知我者，小友也！‘最爱’与‘行不足’直抒胸臆，表达了我对西湖春景的极度喜爱。景中有情，情中有景，这就是‘情景交融’。你要记住这个考点。" }, { text: "B. 因为诗人走累了。", feedback: "哈哈，真会说笑！虽然身体会累，但诗人的心被美景深深吸引，不愿离去。这是一种精神上的留恋，是对美的极致追求。" } ] },
+            { act: 4, scene: "[ 终幕：默写挑战（一） ]", poem: "《钱塘湖春行》填空", poetDialog: "小友，我们来挑战背诵。第一题：‘几处早莺争暖树’的下一句是什么？", options: [ { text: "A. 谁家新燕啄春泥", feedback: "太棒了！完全正确！你再巩固一遍整句：几处早莺争暖树，谁家新燕啄春泥。下一题：‘乱花渐欲迷人眼’的下一句？" }, { text: "B. 谁家新燕啄春景", feedback: "不对哦！这里是‘春泥’不是‘春景’。燕子啄的是筑巢的春泥，不是春天的景色。记住这一联：几处早莺争暖树，谁家新燕啄春泥。下一题：‘乱花渐欲迷人眼’的下一句？" } ] },
+            { act: 5, scene: "[ 终幕：默写挑战（二） ]", poem: "《钱塘湖春行》填空", poetDialog: "第二题：‘乱花渐欲迷人眼’的下一句是什么？", options: [ { text: "A. 浅草才能没马蹄", feedback: "太棒了！你完整掌握了这首诗。完整背诵一遍：孤山寺北贾亭西，水面初平云脚低。几处早莺争暖树，谁家新燕啄春泥。乱花渐欲迷人眼，浅草才能没马蹄。最爱湖东行不足，绿杨阴里白沙堤。" }, { text: "B. 浅草才能没牛蹄", feedback: "哈哈，不对哦！是马不是牛。白居易骑马游湖，所以是‘浅草才能没马蹄’。再来一遍：孤山寺北贾亭西，水面初平云脚低。几处早莺争暖树，谁家新燕啄春泥。乱花渐欲迷人眼，浅草才能没马蹄。最爱湖东行不足，绿杨阴里白沙堤。" } ] }
+        ]},
+        { title: "《卖炭翁》· 白居易", acts: [
+            { act: 0, scene: "[ 序幕：卖炭翁 ]", poem: "《卖炭翁》· 白居易", poetDialog: "小友，今天我带你看看长安城南门外的卖炭老翁。他满脸灰尘，靠卖炭维持生计。你可知他心中最大的愿望？", options: [ { text: "A. 希望天更冷，炭卖个好价钱。", feedback: "可怜身上衣正单，心忧炭贱愿天寒。这是底层百姓的无奈，也是白居易讽喻诗最深刻的地方。" }, { text: "B. 希望早点回家。", feedback: "他也想，但一个黄衣使者只用半匹红绡就换走了他一车炭。这就是当时‘宫市’的掠夺本质。" } ] },
+            { act: 1, scene: "[ 第一幕：伐薪烧炭 ]", poem: "卖炭翁，伐薪烧炭南山中。", poetDialog: "他常年一个人在南山砍柴烧炭，十指漆黑。这种形象，是不是和课本里的劳动者很像？", options: [ { text: "A. 很真实，像旧社会老农民。", feedback: "对，这是白居易讽喻诗的特点——反映民生疾苦。他不写华丽的辞藻，只写最真实的生活。" }, { text: "B. 就是觉得他很苦。", feedback: "你能感受这份‘苦’，就接近了诗歌的本质。他的形象正是千千万万被剥削的普通百姓的缩影。" } ] },
+            { act: 2, scene: "[ 第二幕：黄衣使者 ]", poem: "翩翩两骑来是谁？黄衣使者白衫儿。", poetDialog: "那两人骑马而来，用半匹红绡一丈绫强行换走了一车炭。你觉得公平吗？", options: [ { text: "A. 不公平，这是强买强卖。", feedback: "你说得对！这揭露了宫市的掠夺本质。他用一生辛劳换来的东西，却抵不上一车炭的价值。这是多么深刻的悲剧。" }, { text: "B. 还算公平，毕竟给东西了。", feedback: "你换个角度想，一车炭是‘千余斤’啊，只换来‘半匹红绡一丈绫’，这在当时连本钱都收不回来。这就是白居易笔下的‘苦宫市也’。" } ] },
+            { act: 3, scene: "[ 第三幕：半匹红绡 ]", poem: "半匹红绡一丈绫，系向牛头充炭直。", poetDialog: "这半匹红绡根本换不来生活所需。这首诗在控诉宫市对百姓的盘剥。若老翁反抗，他会怎么做？", options: [ { text: "A. 他不敢反抗，只能默默忍受。", feedback: "确实如此。‘宫市’的暴行是合法化的，老翁根本没有反抗的能力。这种无声的控诉反而更让人心酸。" }, { text: "B. 他应该去告官，寻求公道。", feedback: "这是一个美好的愿望，但现实是——当时宫市的使者背后是皇权，告官无门。这也是白居易讽喻诗的深刻之处。" } ] },
+            { act: 4, scene: "[ 终幕：默写挑战（一） ]", poem: "《卖炭翁》填空", poetDialog: "小友，我们来挑战背诵。第一题：‘可怜身上衣正单’的下一句是什么？", options: [ { text: "A. 心忧炭贱愿天寒", feedback: "完全正确！把卖炭翁的矛盾心理刻画得入木三分。下一题：‘夜来城外一尺雪’的下一句？" }, { text: "B. 夜来城外一尺雪", feedback: "不对哦。‘可怜身上衣正单，心忧炭贱愿天寒。’再记一遍！下一题：‘夜来城外一尺雪’的下一句？" } ] },
+            { act: 5, scene: "[ 终幕：默写挑战（二） ]", poem: "《卖炭翁》填空", poetDialog: "第二题：‘夜来城外一尺雪’的下一句是什么？", options: [ { text: "A. 晓驾炭车辗冰辙", feedback: "太棒了！你完整掌握了这首诗。记住：卖炭翁的辛劳与宫市的掠夺形成了鲜明对比，这正是白居易讽喻诗的力量！" }, { text: "B. 半匹红绡一丈绫", feedback: "不对哦，那是后面的。‘夜来城外一尺雪，晓驾炭车辗冰辙。’请完整背诵一遍！" } ] }
+        ]}
+    ]},
+    'libai': { bg: "url('lushan.jpg')", particle: 'moon', avatar: 'libai.jpg', poems: [
+        { title: "《静夜思》· 李白", acts: [
+            { act: 0, scene: "[ 序幕：月下独酌 ]", poem: "《静夜思》· 李白", poetDialog: "小友，我是李白。今夜月色正好，我独坐窗前，忽见地上洒满月光，仿佛霜雪一般。你有什么感觉？", options: [ { text: "A. 感觉很宁静。", feedback: "确实，在这宁静之中，我抬头望月，低头便想起了故乡。" }, { text: "B. 感觉有点孤单。", feedback: "你说到了我的心坎里。在这异乡的夜里，孤独便化作了思乡之情。" } ] },
+            { act: 1, scene: "[ 第一幕：床前明月光 ]", poem: "床前明月光，疑是地上霜。", poetDialog: "你看这月光，多像白霜啊。一个‘疑’字，写出了我的恍惚。你觉得这个‘疑’字用得好吗？", options: [ { text: "A. 用得好，写出了真实感受。", feedback: "对！‘疑’字说明我一时半会儿还没反应过来是月光。一个‘疑’字，把那种恍惚、迷离的感觉写活了。这就是炼字的妙处。" }, { text: "B. 我觉得一般般。", feedback: "那你试着换个字，比如‘像’或‘是’，是不是少了那种瞬间的恍惚感？‘疑’字让读者也进入了一种半梦半醒的状态。" } ] },
+            { act: 2, scene: "[ 第二幕：举头望明月 ]", poem: "举头望明月，低头思故乡。", poetDialog: "我抬头看看天上的月亮，又低头想起了故乡。你觉得我为什么是‘低头’而不是‘摇头’？", options: [ { text: "A. ‘低头’说明陷入了沉思。", feedback: "知音！低头是自然而然的动作，表示思绪已飘远，沉浸在深深的回忆中。摇头则太刻意了。" }, { text: "B. 因为他脖子酸了。", feedback: "哈哈，风趣！但这‘低头’更是一种情感的下沉，是对故乡的深深眷恋。‘举头’与‘低头’形成对比，把思念具象化了。" } ] },
+            { act: 3, scene: "[ 第三幕：思乡之情 ]", poem: "思乡之情，尽在诗中。", poetDialog: "这首小诗，没有华丽辞藻，只有最真实的感受。你觉得它为什么能流传千古？", options: [ { text: "A. 因为它写出了人人都有的情感。", feedback: "说得好！正是这份共通的情感，让无数游子产生了共鸣。文学的力量在于共情。" }, { text: "B. 因为它短，好背。", feedback: "短小精悍确实是一个原因，但更核心的还是它触动了人们心底最柔软的地方。语言虽简，情真意切。" } ] },
+            { act: 4, scene: "[ 终幕：默写挑战（一） ]", poem: "《静夜思》填空", poetDialog: "小友，我们来挑战背诵。第一题：‘床前明月光’的下一句是什么？", options: [ { text: "A. 疑是地上霜", feedback: "完全正确！下一题：‘举头望明月’的下一句？" }, { text: "B. 低头思故乡", feedback: "不对哦，那是后面的。‘床前明月光，疑是地上霜。’下一题：‘举头望明月’的下一句？" } ] },
+            { act: 5, scene: "[ 终幕：默写挑战（二） ]", poem: "《静夜思》填空", poetDialog: "第二题：‘举头望明月’的下一句是什么？", options: [ { text: "A. 低头思故乡", feedback: "太棒了！你完整掌握了这首诗。这首诗虽短，却字字珠玑，道尽了天下游子的思乡之情。" }, { text: "B. 疑是地上霜", feedback: "不对哦，那是前面的。‘举头望明月，低头思故乡。’" } ] }
+        ]},
+        { title: "《望庐山瀑布》· 李白", acts: [
+            { act: 0, scene: "[ 序幕：望庐山瀑布 ]", poem: "《望庐山瀑布》· 李白", poetDialog: "小友，今天我来到庐山，看到瀑布从高处飞流直下，水雾弥漫，在阳光下仿佛紫色的烟雾。你觉得这样的场景，像什么？", options: [ { text: "A. 像银河从天上掉下来。", feedback: "说得好！这正是‘疑是银河落九天’。瀑布水势浩大，给人一种从天而降的视觉冲击。这就是浪漫主义。" }, { text: "B. 像一条白练挂在山前。", feedback: "这也是诗里写的‘遥看瀑布挂前川’。瀑布像一条白色的绢绸悬挂在山前，非常形象。" } ] },
+            { act: 1, scene: "[ 第一幕：日照香炉 ]", poem: "日照香炉生紫烟，遥看瀑布挂前川。", poetDialog: "一个‘生’字，写出了紫烟的动态。你觉得用得好吗？", options: [ { text: "A. 好，很有生命力。", feedback: "没错！‘生’字让香炉峰的雾气有了生命，就像从山峰里长出来一样，充满仙气。而‘挂’字则化动为静，把瀑布写成了静态的画卷。" }, { text: "B. 一般，不就是升起吗？", feedback: "如果换成‘升’字，就太普通了。一个‘生’字，赋予了香炉峰灵性。而‘挂’字，更是把飞泻的瀑布写成了静止的画，动静结合。" } ] },
+            { act: 2, scene: "[ 第二幕：飞流直下 ]", poem: "飞流直下三千尺，疑是银河落九天。", poetDialog: "瀑布从高处飞流直下，我怀疑是银河从九天倾泻下来。这句诗用了什么修辞？", options: [ { text: "A. 夸张和比喻。", feedback: "非常准确！‘三千尺’是夸张，写出了瀑布之高；‘银河落九天’是比喻，写出了瀑布的壮丽。这一句将李白的浪漫主义展现得淋漓尽致。" }, { text: "B. 拟人。", feedback: "这里主要用的是夸张和比喻。把瀑布比作银河，是李白最天才的想象。" } ] },
+            { act: 3, scene: "[ 第三幕：诗仙的浪漫 ]", poem: "飞流直下三千尺，疑是银河落九天。", poetDialog: "李白的诗总充满奇特想象，这种浪漫主义风格给了你什么启发？", options: [ { text: "A. 写作文时也要大胆想象。", feedback: "对！想象力是诗歌的灵魂。你也要敢于打破常规，写出属于自己的浪漫。" }, { text: "B. 没觉得，就是写景。", feedback: "其实这不仅仅是写景，诗人把瀑布想象成银河，表达了他对自然伟力的赞叹，也是一种精神的自由。" } ] },
+            { act: 4, scene: "[ 终幕：默写挑战（一） ]", poem: "《望庐山瀑布》填空", poetDialog: "小友，我们来挑战背诵。第一题：‘日照香炉生紫烟’的下一句是什么？", options: [ { text: "A. 遥看瀑布挂前川", feedback: "太棒了！下一题：‘飞流直下三千尺’的下一句？" }, { text: "B. 疑是银河落九天", feedback: "不对哦，那是后面的。‘日照香炉生紫烟，遥看瀑布挂前川。’下一题：‘飞流直下三千尺’的下一句？" } ] },
+            { act: 5, scene: "[ 终幕：默写挑战（二） ]", poem: "《望庐山瀑布》填空", poetDialog: "第二题：‘飞流直下三千尺’的下一句是什么？", options: [ { text: "A. 疑是银河落九天", feedback: "太棒了！这句诗气势磅礴，是千古名句。完整的诗：日照香炉生紫烟，遥看瀑布挂前川。飞流直下三千尺，疑是银河落九天。" }, { text: "B. 日照香炉生紫烟", feedback: "不对哦，那是前面的。‘飞流直下三千尺，疑是银河落九天。’" } ] }
+        ]}
+    ]},
+    'dufu': { bg: "url('xihu.jpg')", particle: 'rain', avatar: 'dufu.jpg', poems: [
+        { title: "《春望》· 杜甫", acts: [
+            { act: 0, scene: "[ 序幕：春望长安 ]", poem: "《春望》· 杜甫", poetDialog: "小友，我是杜甫。如今长安城已被叛军焚毁，满目疮痍。我站在这废墟之上，看到花开却流泪，听到鸟鸣却惊心。你知道为什么吗？", options: [ { text: "A. 因为您太悲伤了。", feedback: "是啊，国破家亡，连花鸟都让我感到悲伤。这叫‘感时花溅泪，恨别鸟惊心’。这里用了‘移情’的手法，将自己的情感投射到了花鸟身上。" }, { text: "B. 因为您害怕鸟叫。", feedback: "哈哈，不是害怕鸟叫，而是这鸟鸣让我想起了战乱前的安宁，反差太大，让我心惊。这就是‘以乐景写哀情’。" } ] },
+            { act: 1, scene: "[ 第一幕：国破山河在 ]", poem: "国破山河在，城春草木深。", poetDialog: "‘国破’二字沉痛无比，但‘山河在’又让人心存一丝希望。你体会到了这种矛盾吗？", options: [ { text: "A. 体会到了，国家虽破，自然依旧。", feedback: "正是如此！‘城春草木深’看似写景，实则写出了战乱后城中荒芜，人烟稀少的悲凉。一个‘深’字，满目凄然。" }, { text: "B. 没觉得，就是写实。", feedback: "这不仅是写实，更是以乐景写哀情。春色越美，越衬托出国破的悲惨。这就是杜甫沉郁顿挫的风格。" } ] },
+            { act: 2, scene: "[ 第二幕：家书抵万金 ]", poem: "烽火连三月，家书抵万金。", poetDialog: "战火烧了三个月，一封家信比万两黄金还珍贵。你收到过这样的信吗？", options: [ { text: "A. 没有，但能理解那种期盼。", feedback: "你能理解这份心情就好。在那个年代，书信就是唯一的情感寄托，甚至关乎生死。‘抵万金’是夸张，但更是写实。" }, { text: "B. 现在有微信，用不着写信。", feedback: "科技确实改变了生活，但那份对家人的牵挂，古今皆同。如果你生活在那个年代，你也会觉得家书比黄金还重。" } ] },
+            { act: 3, scene: "[ 第三幕：白头搔更短 ]", poem: "白头搔更短，浑欲不胜簪。", poetDialog: "我因忧国忧民，白发越搔越短，连发簪都快插不住了。你觉得这写出了什么？", options: [ { text: "A. 写出了诗人的衰老和忧愁。", feedback: "是的，诗人的白发正是他内心忧愤、愁苦的外化。‘搔’这个动作，表现了他内心的焦虑和无奈。" }, { text: "B. 说明他头发掉得快。", feedback: "这并非单纯写脱发，而是以形写神，表现了他为国家命运而日益憔悴。这是细节描写的典范。" } ] },
+            { act: 4, scene: "[ 终幕：默写挑战（一） ]", poem: "《春望》填空", poetDialog: "小友，我们来挑战背诵。第一题：‘国破山河在’的下一句是什么？", options: [ { text: "A. 城春草木深", feedback: "完全正确！下一题：‘烽火连三月’的下一句？" }, { text: "B. 家书抵万金", feedback: "不对哦，那是后面的。‘国破山河在，城春草木深。’下一题：‘烽火连三月’的下一句？" } ] },
+            { act: 5, scene: "[ 终幕：默写挑战（二） ]", poem: "《春望》填空", poetDialog: "第二题：‘烽火连三月’的下一句是什么？", options: [ { text: "A. 家书抵万金", feedback: "完全正确！这句写出了战乱中家书的珍贵。完整的诗：国破山河在，城春草木深。感时花溅泪，恨别鸟惊心。烽火连三月，家书抵万金。白头搔更短，浑欲不胜簪。" }, { text: "B. 城春草木深", feedback: "不对哦，那是前面的。‘烽火连三月，家书抵万金。’" } ] }
+        ]},
+        { title: "《绝句》· 杜甫", acts: [
+            { act: 0, scene: "[ 序幕：草堂春色 ]", poem: "《绝句》· 杜甫", poetDialog: "小友，我是杜甫。今天战乱平息了，我回到成都草堂，看到春天景色如此美丽。你听，两只黄鹂在翠绿的柳树上鸣叫。你想和我一起欣赏吗？", options: [ { text: "A. 太美了！我要看。", feedback: "那我们这就一起看。你看到窗户里包含的千年积雪了吗？那是西岭雪山。一个‘含’字，把窗外的雪山写成了嵌在窗框里的一幅画。" }, { text: "B. 先生，您心情好了很多。", feedback: "是啊，经历了这么多战乱，看到这生机勃勃的春天，我的心情终于放松了。这就是和平的可贵。" } ] },
+            { act: 1, scene: "[ 第一幕：两个黄鹂 ]", poem: "两个黄鹂鸣翠柳，一行白鹭上青天。", poetDialog: "你注意到颜色了吗？黄、翠、白、青，四种颜色交织在一起，就像一幅画。你觉得这句诗好在哪里？", options: [ { text: "A. 色彩鲜明，非常生动。", feedback: "对！杜甫不仅是诗人，还是个色彩大师。黄鹂、翠柳、白鹭、青天，构成了鲜明的视觉画面。" }, { text: "B. 就是写动物在活动。", feedback: "不仅仅是活动，更是一种色彩和构图的完美结合。这就是‘诗中有画’的典范。" } ] },
+            { act: 2, scene: "[ 第二幕：窗含西岭 ]", poem: "窗含西岭千秋雪，门泊东吴万里船。", poetDialog: "一个‘含’字，把窗外的雪山写成了嵌在窗框里的一幅画。你觉得这个字妙在哪里？", options: [ { text: "A. 很形象，像把风景装进了窗户。", feedback: "精辟！‘含’字把窗外的雪山和窗户结合在了一起，非常有空间感。这就是古人‘炼字’的高明之处。" }, { text: "B. 感觉一般。", feedback: "如果换成‘看’字，就没了这幅画的感觉。‘含’字正是诗圣炼字的功夫所在。" } ] },
+            { act: 3, scene: "[ 第三幕：绝句之美 ]", poem: "绝句之美，在于精炼。", poetDialog: "这首诗只有四句，却包含了色彩、声音、空间和时间的交织。你觉得它为什么能成为千古名篇？", options: [ { text: "A. 因为它写得很美，很生动。", feedback: "说得对！这首诗的生机勃勃不仅展现了春色，也反映了杜甫在战乱后难得的宁静与喜悦。" }, { text: "B. 因为它是杜甫写的。", feedback: "诗人的名气是一方面，但更重要的是这首诗在艺术上的高度成就。它完美展现了绝句这种诗体的魅力。" } ] },
+            { act: 4, scene: "[ 终幕：默写挑战（一） ]", poem: "《绝句》填空", poetDialog: "小友，我们来挑战背诵。第一题：‘两个黄鹂鸣翠柳’的下一句是什么？", options: [ { text: "A. 一行白鹭上青天", feedback: "太棒了！下一题：‘窗含西岭千秋雪’的下一句？" }, { text: "B. 窗含西岭千秋雪", feedback: "不对哦，那是后面的。‘两个黄鹂鸣翠柳，一行白鹭上青天。’下一题：‘窗含西岭千秋雪’的下一句？" } ] },
+            { act: 5, scene: "[ 终幕：默写挑战（二） ]", poem: "《绝句》填空", poetDialog: "第二题：‘窗含西岭千秋雪’的下一句是什么？", options: [ { text: "A. 门泊东吴万里船", feedback: "太棒了！色彩对比鲜明，画面感极强。完整背诵：两个黄鹂鸣翠柳，一行白鹭上青天。窗含西岭千秋雪，门泊东吴万里船。" }, { text: "B. 两个黄鹂鸣翠柳", feedback: "不对哦，那是前面的。‘窗含西岭千秋雪，门泊东吴万里船。’" } ] }
+        ]}
+    ]},
+    'wangwei': { bg: "url('yueye.jpg')", particle: 'catkin', avatar: 'wangwei.jpg', poems: [
+        { title: "《山居秋暝》· 王维", acts: [
+            { act: 0, scene: "[ 序幕：山居秋暝 ]", poem: "《山居秋暝》· 王维", poetDialog: "小友，我是王维。我刚下过一场秋雨，山谷里格外清幽。你看到明月从松间洒下清辉，听到泉水在石上流淌了吗？", options: [ { text: "A. 感受到了，很清幽。", feedback: "对，这就是‘空山新雨后，天气晚来秋’的意境。诗中有画，画中有诗。" }, { text: "B. 没感觉，有点冷。", feedback: "虽有些凉意，但这正是秋日山居的独特之处。你再静下心来体会，就能发现这份清幽之美。" } ] },
+            { act: 1, scene: "[ 第一幕：明月松间照 ]", poem: "明月松间照，清泉石上流。", poetDialog: "上句写静，下句写动。月光与泉水，一静一动，你觉得搭配得好吗？", options: [ { text: "A. 非常好，动静结合。", feedback: "这正是王维的高明之处。月光洒在松林上是静态的美，泉水在石头上流淌是动态的美。光影交错，泉水叮咚，让读者仿佛身临其境。" }, { text: "B. 一般，就是写景。", feedback: "写景的背后是心境。这动静之间，体现了诗人内心的宁静与超脱。以动衬静，更显山居的清幽。" } ] },
+            { act: 2, scene: "[ 第二幕：竹喧归浣女 ]", poem: "竹喧归浣女，莲动下渔舟。", poetDialog: "竹林里传来喧闹声，是洗衣的姑娘们回来了；莲叶摇动，是渔夫的船划过来了。你觉得这两句写得好在哪里？", options: [ { text: "A. 先闻其声，后见其人。", feedback: "精准！这叫‘未见其人，先闻其声’，非常有生活气息，也体现了山居的淳朴民风。这种写法能引发读者的想象。" }, { text: "B. 写得很热闹。", feedback: "这种热闹并非市井的喧嚣，而是一种融入自然的和谐，是山居生活的乐趣。" } ] },
+            { act: 3, scene: "[ 第三幕：随意春芳歇 ]", poem: "随意春芳歇，王孙自可留。", poetDialog: "虽然春天的芬芳已歇，但秋天的山居同样令人留恋。这首诗表达了诗人怎样的志向？", options: [ { text: "A. 表达了诗人归隐山林的志向。", feedback: "完全正确。王维晚年好佛，寄情山水，这首诗正是他隐居生活的写照。‘王孙自可留’化用了《楚辞》的典故，表达了留恋忘返之情。" }, { text: "B. 表达了诗人想当官。", feedback: "恰恰相反。‘王孙自可留’正是说，山居生活如此美好，那些追求功名利禄的人啊，不如留下来。" } ] },
+            { act: 4, scene: "[ 终幕：默写挑战（一） ]", poem: "《山居秋暝》填空", poetDialog: "小友，我们来挑战背诵。第一题：‘空山新雨后’的下一句是什么？", options: [ { text: "A. 天气晚来秋", feedback: "完全正确！下一题：‘明月松间照’的下一句？" }, { text: "B. 明月松间照", feedback: "不对哦，那是后面的。‘空山新雨后，天气晚来秋。’下一题：‘明月松间照’的下一句？" } ] },
+            { act: 5, scene: "[ 终幕：默写挑战（二） ]", poem: "《山居秋暝》填空", poetDialog: "第二题：‘明月松间照’的下一句是什么？", options: [ { text: "A. 清泉石上流", feedback: "完全正确！这一静一动，堪称千古名句。完整的诗：空山新雨后，天气晚来秋。明月松间照，清泉石上流。竹喧归浣女，莲动下渔舟。随意春芳歇，王孙自可留。" }, { text: "B. 竹喧归浣女", feedback: "不对哦，那是后面的。‘明月松间照，清泉石上流。’" } ] }
+        ]},
+        { title: "《相思》· 王维", acts: [
+            { act: 0, scene: "[ 序幕：南国红豆 ]", poem: "《相思》· 王维", poetDialog: "小友，我是王维。你见过红豆吗？它生长在南国，春天来了，它会生出很多枝条。人们说，这是寄托相思的物件。你信吗？", options: [ { text: "A. 我信，红豆很珍贵。", feedback: "是的，红豆虽小，却承载了人们深深的思念。‘愿君多采撷，此物最相思’。" }, { text: "B. 我不信，就是个豆子。", feedback: "那是你还没体会过思念的滋味。当你远离家乡和亲人时，一颗小小的红豆，也能让你泪流满面。" } ] },
+            { act: 1, scene: "[ 第一幕：红豆生南国 ]", poem: "红豆生南国，春来发几枝。", poetDialog: "红豆生长在南方，春天来了，它会发出多少新枝呢？这一问，其实是在问什么？", options: [ { text: "A. 是在问朋友是否安好。", feedback: "非常准确！看似问红豆，实则问友人。这种含蓄的表达，正是中国古典诗歌的独特魅力。这就是‘托物言情’。" }, { text: "B. 就是随便问问。", feedback: "诗人的每一个问题都是有深意的。这一问，问出了对友人的深切挂念。" } ] },
+            { act: 2, scene: "[ 第二幕：愿君多采撷 ]", poem: "愿君多采撷，此物最相思。", poetDialog: "我劝你多采一些红豆，因为这东西最能寄托相思。你觉得为什么红豆能代表相思呢？", options: [ { text: "A. 因为它的名字叫‘相思子’。", feedback: "没错！红豆又名‘相思子’，这个名字本身就带有情感色彩。王维巧妙地运用了这一意象，赋予了它深厚的文化内涵。" }, { text: "B. 因为它颜色鲜艳。", feedback: "颜色只是表象。真正让它成为相思代名词的，是它的名字，以及背后深厚的文化积淀。" } ] },
+            { act: 3, scene: "[ 第三幕：诗中的深情 ]", poem: "此物最相思。", poetDialog: "这首诗只有短短二十个字，却把相思之情写得淋漓尽致。你觉得它在写作上有什么特点？", options: [ { text: "A. 借物抒情，非常含蓄。", feedback: "对！这就是‘托物言志’或‘借物抒情’的手法。不说我想你，只说红豆最相思，感情反而更真挚，更耐人寻味。" }, { text: "B. 用了很多生僻字。", feedback: "恰恰相反，这首诗用的都是非常简单的字。大巧若拙，平淡中见深情，这才是最高的境界。" } ] },
+            { act: 4, scene: "[ 终幕：默写挑战（一） ]", poem: "《相思》填空", poetDialog: "小友，我们来挑战背诵。第一题：‘红豆生南国’的下一句是什么？", options: [ { text: "A. 春来发几枝", feedback: "完全正确！下一题：‘愿君多采撷’的下一句？" }, { text: "B. 此物最相思", feedback: "不对哦，那是后面的。‘红豆生南国，春来发几枝。’下一题：‘愿君多采撷’的下一句？" } ] },
+            { act: 5, scene: "[ 终幕：默写挑战（二） ]", poem: "《相思》填空", poetDialog: "第二题：‘愿君多采撷’的下一句是什么？", options: [ { text: "A. 此物最相思", feedback: "完全正确！这首诗虽短，却情意绵长。完整的诗：红豆生南国，春来发几枝。愿君多采撷，此物最相思。" }, { text: "B. 春来发几枝", feedback: "不对哦，那是前面的。‘愿君多采撷，此物最相思。’" } ] }
+        ]}
+    ]},
+    'sushi': { bg: "url('yueye.jpg')", particle: 'moon', avatar: 'sushi.jpg', poems: [
+        { title: "《水调歌头》· 苏轼", acts: [
+            { act: 0, scene: "[ 序幕：水调歌头 ]", poem: "《水调歌头·明月几时有》· 苏轼", poetDialog: "小友，我是苏轼。中秋之夜，我喝得大醉，看着天上的明月，想起了我的弟弟苏辙。你说，明月为什么总在人们离别的时候团圆呢？", options: [ { text: "A. 因为月亮不懂人的悲伤。", feedback: "是啊，‘不应有恨，何事长向别时圆？’月亮本无情，只是人有情，才会生出这许多感慨。这是对月亮的‘埋怨’，实则是对亲人的思念。" }, { text: "B. 因为月亮就是个月亮。", feedback: "从科学上讲确实如此。但诗人的心是浪漫的，他们会在月亮上寄托思念。‘月有阴晴圆缺’正是人间悲欢离合的写照。" } ] },
+            { act: 1, scene: "[ 第一幕：把酒问青天 ]", poem: "明月几时有？把酒问青天。", poetDialog: "我举起酒杯，问苍天：明月是从什么时候开始有的？你觉得这表达了什么？", options: [ { text: "A. 表达了对宇宙奥秘的好奇。", feedback: "是啊，这是诗人对宇宙和人生的终极追问，充满了浪漫主义色彩。也体现了他豪放豁达的性格。" }, { text: "B. 喝醉了，胡言乱语。", feedback: "哈哈，确实有醉意，但正是这醉意让他跳出了世俗的框架，达到了极高的哲学境界。" } ] },
+            { act: 2, scene: "[ 第二幕：人有悲欢离合 ]", poem: "人有悲欢离合，月有阴晴圆缺。", poetDialog: "人生有悲欢离合，月亮有阴晴圆缺，这是自古难以周全的事。你觉得这句诗给你什么启示？", options: [ { text: "A. 要坦然接受生活的缺憾。", feedback: "非常通透！这句词抚慰了无数离别之人。它揭示了人生的哲理：万事万物都有缺憾，这是自然规律。豁达面对，才是人生的智慧。" }, { text: "B. 让人感到绝望。", feedback: "不，这不是绝望，而是一种豁达的接纳。既然无法改变，不如坦然面对。这种境界，正是苏轼的伟大之处。" } ] },
+            { act: 3, scene: "[ 第三幕：但愿人长久 ]", poem: "但愿人长久，千里共婵娟。", poetDialog: "最后，我祝愿天下所有离别的人都能长长久久，即使相隔千里，也能共赏同一轮明月。你觉得这是什么情感？", options: [ { text: "A. 是对天下人的美好祝愿。", feedback: "完全正确！苏轼的伟大之处在于，他把个人的情感升华为了对全人类的祝福。‘但愿人长久，千里共婵娟’成了千古名句。" }, { text: "B. 只祝福他自己的弟弟。", feedback: "虽然思念弟弟，但他的祝愿已经超越了个人，变成了对一切离人的美好祝福。" } ] },
+            { act: 4, scene: "[ 终幕：默写挑战（一） ]", poem: "《水调歌头》填空", poetDialog: "小友，我们来挑战背诵。第一题：‘明月几时有’的下一句是什么？", options: [ { text: "A. 把酒问青天", feedback: "完全正确！下一题：‘但愿人长久’的下一句？" }, { text: "B. 千里共婵娟", feedback: "不对哦，那是后面的。‘明月几时有？把酒问青天。’下一题：‘但愿人长久’的下一句？" } ] },
+            { act: 5, scene: "[ 终幕：默写挑战（二） ]", poem: "《水调歌头》填空", poetDialog: "第二题：‘但愿人长久’的下一句是什么？", options: [ { text: "A. 千里共婵娟", feedback: "太棒了！这句词意境开阔，是千古名句。完整的词：明月几时有？把酒问青天。不知天上宫阙，今夕是何年。我欲乘风归去，又恐琼楼玉宇，高处不胜寒。起舞弄清影，何似在人间。转朱阁，低绮户，照无眠。不应有恨，何事长向别时圆？人有悲欢离合，月有阴晴圆缺，此事古难全。但愿人长久，千里共婵娟。" }, { text: "B. 月有阴晴圆缺", feedback: "不对哦，那是前面的。‘但愿人长久，千里共婵娟。’" } ] }
+        ]},
+        { title: "《题西林壁》· 苏轼", acts: [
+            { act: 0, scene: "[ 序幕：题西林壁 ]", poem: "《题西林壁》· 苏轼", poetDialog: "小友，我是苏轼。我来到庐山西林寺，看到这座山从不同角度看，形状都不一样。横着看是连绵的山岭，侧着看是高耸的山峰。你知道为什么吗？", options: [ { text: "A. 因为角度不同，看到的风景也不同。", feedback: "说得太对了！‘横看成岭侧成峰，远近高低各不同。’这告诉我们，观察事物的角度不同，得出的结论也会不同。" }, { text: "B. 因为山会变。", feedback: "山没有变，变的是我们的视角。观察事物要全面，不能片面。" } ] },
+            { act: 1, scene: "[ 第一幕：横看成岭侧成峰 ]", poem: "横看成岭侧成峰，远近高低各不同。", poetDialog: "这句诗告诉我们，站在不同的位置看庐山，会看到不同的样子。你在生活中有没有类似的经历？", options: [ { text: "A. 有，比如看一个同学，有时觉得他很好，有时觉得他不好。", feedback: "非常好的例子！人也是多面的。我们要学会全面地看待他人，不要轻易下结论。" }, { text: "B. 没有。", feedback: "那你可以试着换个角度观察身边的事物，也许会有新的发现。" } ] },
+            { act: 2, scene: "[ 第二幕：不识庐山真面目 ]", poem: "不识庐山真面目，只缘身在此山中。", poetDialog: "为什么我们看不清庐山的真面目？因为我们就在山里面。你觉得这句话有什么哲理？", options: [ { text: "A. 当局者迷，旁观者清。", feedback: "精辟！当我们身在其中时，往往看不清事物的全貌。要学会跳出来，以更宏观的视角看问题。" }, { text: "B. 因为山太大了。", feedback: "根本原因是我们身处其中，视野受限。这就是‘当局者迷’的道理。" } ] },
+            { act: 3, scene: "[ 第三幕：哲理诗的魅力 ]", poem: "不识庐山真面目，只缘身在此山中。", poetDialog: "这首诗既写了庐山，又写了人生哲理。你觉得这种‘借景说理’的写法有什么好处？", options: [ { text: "A. 道理不枯燥，更容易接受。", feedback: "对！苏轼把抽象的哲理融入具体的景物中，让读者在欣赏美景的同时，自然而然地领悟到人生的智慧。这就是宋诗‘以理入诗’的典型代表。" }, { text: "B. 感觉一般，不太懂。", feedback: "多读几遍，结合自己的生活经验，你就会发现苏轼说的道理非常深刻。" } ] },
+            { act: 4, scene: "[ 终幕：默写挑战（一） ]", poem: "《题西林壁》填空", poetDialog: "小友，我们来挑战背诵。第一题：‘横看成岭侧成峰’的下一句是什么？", options: [ { text: "A. 远近高低各不同", feedback: "完全正确！下一题：‘不识庐山真面目’的下一句？" }, { text: "B. 只缘身在此山中", feedback: "不对哦，那是后面的。‘横看成岭侧成峰，远近高低各不同。’下一题：‘不识庐山真面目’的下一句？" } ] },
+            { act: 5, scene: "[ 终幕：默写挑战（二） ]", poem: "《题西林壁》填空", poetDialog: "第二题：‘不识庐山真面目’的下一句是什么？", options: [ { text: "A. 只缘身在此山中", feedback: "完全正确！这句诗充满了人生哲理。完整的诗：横看成岭侧成峰，远近高低各不同。不识庐山真面目，只缘身在此山中。" }, { text: "B. 远近高低各不同", feedback: "不对哦，那是前面的。‘不识庐山真面目，只缘身在此山中。’" } ] }
+        ]}
+    ]}
+};
+
+let currentPoemKey = 'baijuyi';
+let currentPoemIndex = 0;
+let currentAct = 0;
+let scriptData = scripts['baijuyi'].poems[0].acts;
+
+const progressEl = document.getElementById('progress');
+const sceneTextEl = document.getElementById('sceneText');
+const poemTextEl = document.getElementById('poemText');
+const dialogTextEl = document.getElementById('dialogText');
+const optionsBox = document.getElementById('options-box');
+const selectorEl = document.getElementById('poem-selector');
+const avatarEl = document.getElementById('poet-avatar');
+const poetBoxEl = document.getElementById('poet-box');
+const bgLayer = document.getElementById('bg-layer');
+
+const actNames = ["序幕", "第一幕", "第二幕", "第三幕", "终幕上", "终幕下"];
+
+function toggleDisplay(show) {
+    if (show) {
+        selectorEl.style.display = 'none';
+        sceneTextEl.style.display = 'block';
+        poemTextEl.style.display = 'block';
+        poetBoxEl.style.display = 'flex';
+        avatarEl.style.display = 'block';
+        optionsBox.style.display = 'block';
+        document.getElementById('top-back-btn').style.display = 'block';
+    } else {
+        selectorEl.style.display = 'block';
+        sceneTextEl.style.display = 'none';
+        poemTextEl.style.display = 'none';
+        poetBoxEl.style.display = 'none';
+        avatarEl.style.display = 'none';
+        optionsBox.style.display = 'none';
+        document.getElementById('top-back-btn').style.display = 'none';
+    }
+}
+
+function startPoem(poemKey, poemIndex) {
+    currentPoemKey = poemKey;
+    currentPoemIndex = poemIndex;
+    currentAct = 0;
+    
+    let poemData = scripts[poemKey].poems[poemIndex];
+    scriptData = poemData.acts;
+    
+    bgLayer.style.backgroundImage = scripts[poemKey].bg;
+    document.getElementById('particles').innerHTML = '';
+    createParticles(scripts[poemKey].particle);
+    
+    document.getElementById('bgm').play();
+    avatarEl.style.backgroundImage = `url('${scripts[poemKey].avatar}')`;
+    
+    toggleDisplay(true);
+    renderAct();
+}
+
+function renderAct() {
+    let data = scriptData[currentAct];
+    
+    sceneTextEl.style.animation = 'none'; sceneTextEl.offsetHeight; sceneTextEl.style.animation = '';
+    poemTextEl.style.animation = 'none'; poemTextEl.offsetHeight; poemTextEl.style.animation = '';
+    poetBoxEl.style.animation = 'none'; poetBoxEl.offsetHeight; poetBoxEl.style.animation = '';
+
+    progressEl.innerText = `${actNames[currentAct]} / 共六幕`;
+    sceneTextEl.innerText = data.scene;
+    poemTextEl.innerText = data.poem;
+    dialogTextEl.innerText = data.poetDialog;
+    
+    optionsBox.innerHTML = '';
+    
+    data.options.forEach((opt) => {
+        let btn = document.createElement('button');
+        btn.innerText = opt.text;
+        btn.onclick = function() { selectOption(opt.feedback); };
+        optionsBox.appendChild(btn);
+    });
+}
+
+function selectOption(feedback) {
+    optionsBox.innerHTML = '';
+    dialogTextEl.innerText = feedback;
+
+    let nextBtn = document.createElement('button');
+    nextBtn.className = 'next-btn';
+    if (currentAct === scriptData.length - 1) {
+        nextBtn.innerText = "完成伴读，生成学习报告 →";
+    } else {
+        nextBtn.innerText = "继续游览 →";
+    }
+    
+    nextBtn.onclick = function() {
+        currentAct++;
+        if (currentAct < scriptData.length) {
+            renderAct();
+        } else {
+            progressEl.innerText = "🎉 伴读结束";
+            sceneTextEl.innerText = "[ 场景：余韵悠长 ]";
+            poemTextEl.innerText = "伴读完毕 · 学习成果";
+            dialogTextEl.innerText = "小友，今日与你同游，甚感欣慰。愿你熟读成诵，将这份诗意带入未来的课堂。我们后会有期！";
+            
+            optionsBox.innerHTML = '';
+            
+            let backBtn = document.createElement('button');
+            backBtn.className = 'back-btn';
+            backBtn.innerText = "⬅ 返回选择诗作";
+            backBtn.onclick = function() { toggleDisplay(false); };
+            optionsBox.appendChild(backBtn);
+        }
+    };
+    optionsBox.appendChild(nextBtn);
+}
+
+function createParticles(type) {
+    const container = document.getElementById('particles');
+    container.innerHTML = '';
+    
+    if (type === 'moon') {
+        let moon = document.createElement('div');
+        moon.className = 'moon';
+        container.appendChild(moon);
+        let frost = document.createElement('div');
+        frost.className = 'frost';
+        container.appendChild(frost);
+    }
+    
+    let particleClass = 'petal';
+    if (type === 'rain') particleClass = 'rain';
+    if (type === 'catkin') particleClass = 'catkin';
+    
+    for (let i = 0; i < 35; i++) {
+        let particle = document.createElement('div');
+        particle.className = `particle ${particleClass}`;
+        
+        if (particleClass === 'petal') {
+            particle.style.width = Math.random() * 12 + 5 + 'px';
+            particle.style.height = particle.style.width;
+        } else if (particleClass === 'rain') {
+            particle.style.width = '2px';
+            particle.style.height = '15px';
+        } else if (particleClass === 'catkin') {
+            particle.style.width = Math.random() * 10 + 4 + 'px';
+            particle.style.height = particle.style.width;
+        }
+        
+        particle.style.left = Math.random() * 100 + 'vw';
+        particle.style.animationDuration = Math.random() * 5 + 5 + 's';
+        particle.style.animationDelay = Math.random() * 5 + 's';
+        container.appendChild(particle);
+    }
+}
+
+window.onload = function() {
+    toggleDisplay(false);
+};
+</script>
+</body>
+</html>
